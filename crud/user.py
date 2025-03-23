@@ -1,3 +1,4 @@
+import pymongo
 from serializers.user import user_serializer 
 from fastapi.encoders import jsonable_encoder
 from bson.objectid import ObjectId
@@ -10,7 +11,7 @@ class UserCrud:
     @staticmethod
     def create_user(user_data: UserCreate):
         
-        user_collection.create_index("email", unique=True)
+        user_collection.create_index([("email", pymongo.ASCENDING)], unique=True, sparse=True)
 
         user_data = jsonable_encoder(user_data)
         user_document_data = user_collection.insert_one(user_data)

@@ -19,6 +19,6 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = "Opeyemi"
-    email: Optional[EmailStr] = "Opeyemi111@gmail.com"
+    name: Optional[str] = "Opeyemi1"
+    email: Optional[EmailStr] = "Opeyemi1@gmail.com"
     created_at: Optional[datetime] = datetime.now()
