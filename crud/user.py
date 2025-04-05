@@ -1,5 +1,5 @@
 import pymongo
-from serializers.user import user_serializer 
+from serializers.user import user_serializer, users_serializer 
 from fastapi.encoders import jsonable_encoder
 from bson.objectid import ObjectId
 from schemas.user import UserCreate, UserUpdate
@@ -22,16 +22,9 @@ class UserCrud:
     
     @staticmethod
     def list_users():
-        users = user_collection.find()
-
-        user_list = []
-        for user in users:
-            user_list.append(user_serializer(user))
-            
-        return user_list
-    
-         # OR
-        # return [user_serializer(user) for user in users]
+        users = user_collection.find()  # This returns a cursor
+        
+        return users_serializer(users)
 
 
     @staticmethod
@@ -42,18 +35,16 @@ class UserCrud:
 
     @staticmethod
     def update_user(user_id: str, user_data: UserUpdate):
-        # user_data = {k: v for k, v in user_data.dict().items() if v is not None} 
-        #OR
+        user = user_collection.find_one({"_id": ObjectId(user_id)})
 
-        update_data = {}
-        for k, v in user_data.model_dump().items():
-            if v is not None:
-                update_data[k] = v
+        if not user:
+            return None
+        
+        user_dict = user_data.model_dump(exclude_unset=True)  # Exclude unset fields
 
-        if update_data:
-            user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+        user_updated = user_collection.find_one_and_update({"_id": ObjectId(user_id)}, {"$set": user_dict}, return_document=True)
 
-        return user_serializer(user_collection.find_one({"_id": ObjectId(user_id)}))
+        return user_serializer(user_updated)
 
 
     @staticmethod

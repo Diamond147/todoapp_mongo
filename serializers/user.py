@@ -1,4 +1,5 @@
 def user_serializer(user_document) -> dict:
+    """Converts a MongoDB user object to a Python dictionary"""
     return {
         "id": str(user_document.get("_id")),
         "name": user_document.get("name"),
@@ -8,7 +9,8 @@ def user_serializer(user_document) -> dict:
 
 
 def users_serializer(users_documents) -> list:
-    user_schemas = []
+    """Converts a MongoDB cursor object to a list of Python dictionaries"""
+    user_lists = []
     for user_document in users_documents:
-        user_schemas.append(user_serializer(user_document))
-    return user_schemas
+        user_lists.append(user_serializer(user_document))
+    return user_lists

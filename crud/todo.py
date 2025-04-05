@@ -1,4 +1,4 @@
-from serializers.todo import todo_serializer
+from serializers.todo import todo_serializer, todos_serializer
 from fastapi.encoders import jsonable_encoder
 from bson.objectid import ObjectId
 from schemas.todo import TodoCreate, TodoUpdate
@@ -20,14 +20,7 @@ class TodoCrud:
     def list_todos():
         todos = todo_collection.find()
 
-        todo_list = []
-        for todo in todos:
-            todo_list.append(todo_serializer(todo))
-
-        return todo_list
-
-        # OR
-        # return [todo_serializer(todo) for todo in todos]
+        return todos_serializer(todos)
 
 
     @staticmethod
@@ -38,14 +31,16 @@ class TodoCrud:
 
     @staticmethod
     def update_todo(todo_id: str, todo_data: TodoUpdate):
-        update_data = {}
-        for k,v in todo_data.model_dump().items():
-            if v is not None:
-                update_data[k] = v
-                
-        if update_data:    
-            todo_collection.update_one({"_id": ObjectId(todo_id)}, {"$set": update_data})
-        return todo_serializer(todo_collection.find_one({"_id": ObjectId(todo_id)}))
+        todo = todo_collection.find_one({"_id": ObjectId(todo_id)})
+
+        if not todo:
+            return None
+        
+        todo_dict = todo_data.model_dump(exclude_unset=True)  # Exclude unset fields
+
+        todo_update = todo_collection.find_one_and_update({"_id": ObjectId(todo_id)}, {"$set": todo_dict}, return_document=True)
+
+        return todo_serializer(todo_update)
     
 
     @staticmethod
@@ -57,12 +52,8 @@ class TodoCrud:
     @staticmethod
     def list_todo_by_user(user_id: str):
         todos = todo_collection.find({"user_id": user_id})
-        
-        todo_list = []
-        for todo in todos:
-            todo_list.append(todo_serializer(todo))
-            
-        return todo_list
+
+        return todos_serializer(todos)
 
 
 todo_crud = TodoCrud()
